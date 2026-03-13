@@ -4,6 +4,8 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
+    ports:
+      - "127.0.0.1:3001:3001"
     environment:
       - NODE_ENV=production
       - PORT=3001
@@ -12,44 +14,12 @@ services:
       - DB_PATH=/app/data/mir.db
     volumes:
       - mir_data:/app/data
-    networks:
-      - mir_network
     healthcheck:
       test: ["CMD", "wget", "-qO-", "http://localhost:3001/api/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  frontend:
-    build:
-      context: ./frontend
-      args:
-        - VITE_API_URL=
-    restart: unless-stopped
-    networks:
-      - mir_network
-    depends_on:
-      - backend
-
-  nginx:
-    image: nginx:alpine
-    restart: unless-stopped
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - /etc/letsencrypt:/etc/letsencrypt:ro
-    networks:
-      - mir_network
-    depends_on:
-      - frontend
-      - backend
-
 volumes:
   mir_data:
     driver: local
-
-networks:
-  mir_network:
-    driver: bridge
