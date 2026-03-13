@@ -1,0 +1,28 @@
+# Environment
+.env
+.env.local
+
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build output
+frontend/dist/
+frontend/build/
+
+# SQLite database
+*.db
+*.db-shm
+*.db-wal
+data/
+
+# Docker
+.docker/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
