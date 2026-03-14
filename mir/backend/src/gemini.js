@@ -1,11 +1,11 @@
 // ============================================================
 // MIR — Gemini AI Companion
-// Google Gemini 1.5 Flash
+// Google Gemini 2.0 Flash Lite
 // Grounded in: Béla Villás (SIN), Neville Goddard,
 //              Hawkins Map of Consciousness, Hubbard Chart
 // ============================================================
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent';
 
 // ============================================================
 // SYSTEM PROMPT — The soul of MIR's AI companion
