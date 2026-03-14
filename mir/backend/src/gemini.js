@@ -1,11 +1,11 @@
 // ============================================================
 // MIR — Gemini AI Companion
-// Google Gemini Flash 2.0
-// Grounded in: Béla Villás (SIN), Neville Goddard, 
+// Google Gemini 1.5 Flash
+// Grounded in: Béla Villás (SIN), Neville Goddard,
 //              Hawkins Map of Consciousness, Hubbard Chart
 // ============================================================
 
-const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent';
+const GEMINI_API_URL = 'https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent';
 
 // ============================================================
 // SYSTEM PROMPT — The soul of MIR's AI companion
@@ -177,34 +177,49 @@ function buildGeminiRequest(messages, reviewContext = null) {
 }
 
 // ============================================================
-// Call Gemini API
+// Call Gemini API — with retry on 429 (rate limit)
+// Retries up to 3 times with exponential backoff: 2s, 4s, 8s
 // ============================================================
 async function callGemini(messages, reviewContext = null) {
   const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) throw new Error('GEMINI_API_KEY not set in environment');
 
-  const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(buildGeminiRequest(messages, reviewContext))
-  });
+  const MAX_RETRIES = 3;
+  const BACKOFF_MS = [2000, 4000, 8000];
 
-  if (!response.ok) {
-    const error = await response.text();
-    throw new Error(`Gemini API error ${response.status}: ${error}`);
+  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+    const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(buildGeminiRequest(messages, reviewContext))
+    });
+
+    if (response.status === 429 && attempt < MAX_RETRIES) {
+      const wait = BACKOFF_MS[attempt];
+      console.warn(`Gemini rate limited (attempt ${attempt + 1}/${MAX_RETRIES}), retrying in ${wait}ms…`);
+      await new Promise(resolve => setTimeout(resolve, wait));
+      continue;
+    }
+
+    if (!response.ok) {
+      const error = await response.text();
+      throw new Error(`Gemini API error ${response.status}: ${error}`);
+    }
+
+    const data = await response.json();
+
+    // Extract text from response
+    const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
+    if (!text) throw new Error('No response from Gemini');
+
+    return {
+      content: text,
+      finishReason: data.candidates?.[0]?.finishReason,
+      usage: data.usageMetadata
+    };
   }
 
-  const data = await response.json();
-
-  // Extract text from response
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-  if (!text) throw new Error('No response from Gemini');
-
-  return {
-    content: text,
-    finishReason: data.candidates?.[0]?.finishReason,
-    usage: data.usageMetadata
-  };
+  throw new Error('Gemini API error 429: rate limit exceeded after retries');
 }
 
 module.exports = { callGemini, buildGeminiRequest };
