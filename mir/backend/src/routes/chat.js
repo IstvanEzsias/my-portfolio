@@ -10,11 +10,19 @@ const { reviews, reviewItems } = require('../db/queries');
 
 // ============================================================
 // POST /api/chat
-// Body: { messages: [{role, content}], userId?, reviewId? }
+// Body (existing):  { messages: [{role, content}], userId?, reviewId? }
+// Body (Lovable):   { message: string, conversationHistory: [{role, content}], userId?, reviewId? }
 // ============================================================
 router.post('/', async (req, res) => {
   try {
-    const { messages, userId, reviewId } = req.body;
+    const { message, conversationHistory, userId, reviewId } = req.body;
+    let { messages } = req.body;
+
+    // Normalize Lovable format → internal format
+    if (!messages && message) {
+      const history = Array.isArray(conversationHistory) ? conversationHistory : [];
+      messages = [...history, { role: 'user', content: message }];
+    }
 
     // Validate
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
