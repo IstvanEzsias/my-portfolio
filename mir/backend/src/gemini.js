@@ -185,7 +185,7 @@ async function callGemini(messages, reviewContext = null) {
   if (!apiKey) throw new Error('GEMINI_API_KEY not set in environment');
 
   const MAX_RETRIES = 3;
-  const BACKOFF_MS = [2000, 4000, 8000];
+  const MAX_WAIT_MS = 30000;
 
   for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
     const response = await fetch(`${GEMINI_API_URL}?key=${apiKey}`, {
@@ -195,7 +195,18 @@ async function callGemini(messages, reviewContext = null) {
     });
 
     if (response.status === 429 && attempt < MAX_RETRIES) {
-      const wait = BACKOFF_MS[attempt];
+      // Parse the retryDelay hint from the response body (e.g. "21s")
+      let wait = (attempt + 1) * 5000; // fallback: 5s, 10s, 15s
+      try {
+        const body = await response.json();
+        const delayStr = body?.error?.details
+          ?.find(d => d['@type']?.includes('RetryInfo'))
+          ?.retryDelay;
+        if (delayStr) {
+          const seconds = parseFloat(delayStr.replace('s', ''));
+          if (!isNaN(seconds)) wait = Math.min(seconds * 1000, MAX_WAIT_MS);
+        }
+      } catch (_) { /* use fallback */ }
       console.warn(`Gemini rate limited (attempt ${attempt + 1}/${MAX_RETRIES}), retrying in ${wait}ms…`);
       await new Promise(resolve => setTimeout(resolve, wait));
       continue;
