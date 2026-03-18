@@ -23,9 +23,6 @@ export default function Home({ session, onBeginReview }: HomeProps) {
 
   const profile     = session.profile;
   const displayName = profile?.display_name ?? profile?.name ?? null;
-  const avatarUrl   = profile?.picture ?? undefined;
-  const initial     = displayName?.[0]?.toUpperCase() ?? session.npub[5]?.toUpperCase() ?? 'L';
-  const shortNpub   = `${session.npub.slice(0, 10)}…${session.npub.slice(-5)}`;
 
   useEffect(() => {
     fetch(`${API_URL}/api/profile/${session.hexPubKey}`)
@@ -56,7 +53,7 @@ export default function Home({ session, onBeginReview }: HomeProps) {
     }}>
 
       {/* Hero logo — includes MIR + MAGIC IS REAL text */}
-      <MirLogo size={200} userInitial={avatarUrl ? undefined : initial} />
+      <MirLogo size={200} />
 
       {/* Sacred subtitle */}
       <p style={{
@@ -160,17 +157,12 @@ export default function Home({ session, onBeginReview }: HomeProps) {
         )}
       </div>
 
-      {/* Identity — very quiet */}
-      <div style={{ marginTop: '28px', textAlign: 'center' }}>
-        {displayName && (
-          <div style={{ fontSize: '13px', color: '#6a6460', marginBottom: '3px' }}>
-            {displayName}
-          </div>
-        )}
-        <div style={{ fontSize: '11px', color: '#3a3830', fontFamily: 'monospace' }}>
-          {shortNpub}
+      {/* Display name only — no npub */}
+      {displayName && (
+        <div style={{ marginTop: '20px', fontSize: '13px', color: '#6a6460', textAlign: 'center' }}>
+          {displayName}
         </div>
-      </div>
+      )}
     </div>
   );
 }
