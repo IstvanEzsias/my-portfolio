@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { convertKeyToNostrIds } from '../lib/crypto';
+import { convertKeyToNostrIds, detectKeyFormat } from '../lib/crypto';
 import { fetchKind0Profile, checkRelayConnectivity, DEFAULT_RELAYS } from '../lib/nostr';
 import { saveSession, type LanaSession } from '../lib/session';
 import { MirLogo } from '../components/MIRLogo';
@@ -102,8 +102,8 @@ export default function Login({ onLogin }: LoginProps) {
   // ── QR scan callback ───────────────────────────────────────
   function handleQRScan(scanned: string) {
     const trimmed = scanned.trim();
-    if (!trimmed.startsWith('nsec1')) {
-      setStatus({ state: 'error', message: 'QR code must contain an nsec1 private key' });
+    if (detectKeyFormat(trimmed) === 'unknown') {
+      setStatus({ state: 'error', message: 'QR code did not contain a valid WIF key' });
       return;
     }
     setShowScanner(false);
@@ -147,7 +147,7 @@ export default function Login({ onLogin }: LoginProps) {
           fontFamily: 'Georgia, serif',
           fontStyle: 'italic',
         }}>
-          Enter your Lana private key to begin.
+          Enter your Lana WIF key to begin.
         </p>
 
         {/* Relay status */}
@@ -164,7 +164,7 @@ export default function Login({ onLogin }: LoginProps) {
               type={showKey ? 'text' : 'password'}
               value={privateKey}
               onChange={e => setPrivateKey(e.target.value)}
-              placeholder="nsec1… or WIF or hex"
+              placeholder="WIF private key"
               autoComplete="off"
               spellCheck={false}
               disabled={busy}
@@ -364,7 +364,7 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
         borderTop: '1px solid rgba(255,255,255,0.06)',
       }}>
         <span style={{ fontSize: '12px', color: '#8a8478' }}>
-          {scanning ? 'Point camera at nsec1 QR code' : 'Starting camera…'}
+          {scanning ? 'Point camera at Lana WIF QR code' : 'Starting camera…'}
         </span>
         <button
           type="button"
