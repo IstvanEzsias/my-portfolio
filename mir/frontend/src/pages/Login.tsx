@@ -1,0 +1,324 @@
+// ============================================================
+// MIR — Login Page
+// Nostr nsec / WIF / hex private key authentication
+// Connects to relays, fetches KIND 0 profile, persists session
+// ============================================================
+
+import { useState, useEffect } from 'react';
+import { convertKeyToNostrIds } from '../lib/crypto';
+import { fetchKind0Profile, checkRelayConnectivity, DEFAULT_RELAYS } from '../lib/nostr';
+import { saveSession, type LanaSession } from '../lib/session';
+import { MirLogo } from '../components/MIRLogo';
+
+const API_URL = import.meta.env.VITE_API_URL || '';
+
+type LoginStatus =
+  | { state: 'idle' }
+  | { state: 'connecting' }
+  | { state: 'fetching' }
+  | { state: 'saving' }
+  | { state: 'success'; name: string }
+  | { state: 'error'; message: string };
+
+interface LoginProps {
+  onLogin: (session: LanaSession) => void;
+}
+
+export default function Login({ onLogin }: LoginProps) {
+  const [privateKey, setPrivateKey] = useState('');
+  const [showKey, setShowKey]       = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [status, setStatus]         = useState<LoginStatus>({ state: 'idle' });
+  const [relayOk, setRelayOk]       = useState<boolean | null>(null);
+
+  useEffect(() => {
+    checkRelayConnectivity().then(ok => setRelayOk(ok));
+  }, []);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    const key = privateKey.trim();
+    if (!key) return;
+
+    setStatus({ state: 'connecting' });
+
+    try {
+      const ids = await convertKeyToNostrIds(key);
+
+      setStatus({ state: 'fetching' });
+      let profile = null;
+      try {
+        profile = await fetchKind0Profile(ids.hexPubKey, DEFAULT_RELAYS, 8000);
+      } catch { /* no profile on relays — still allow login */ }
+
+      setStatus({ state: 'saving' });
+      if (profile) {
+        try {
+          await fetch(`${API_URL}/api/profile/upsert`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              nostrPubkey: ids.hexPubKey,
+              nostrNpub:   ids.npub,
+              displayName: profile.display_name ?? profile.name ?? null,
+              avatarUrl:   profile.picture ?? null,
+              about:       profile.about ?? null,
+            }),
+          });
+        } catch { /* non-fatal */ }
+      }
+
+      const durationMs = rememberMe
+        ? 90 * 24 * 60 * 60 * 1000
+        : 30 * 24 * 60 * 60 * 1000;
+
+      const session: LanaSession = {
+        hexPubKey:  ids.hexPubKey,
+        npub:       ids.npub,
+        hexPrivKey: ids.hexPrivKey,
+        nsec:       ids.nsec,
+        profile,
+        expiresAt:  Date.now() + durationMs,
+        rememberMe,
+      };
+
+      saveSession(session);
+      const displayName = profile?.display_name ?? profile?.name ?? '';
+      setStatus({ state: 'success', name: displayName || 'Welcome' });
+      setTimeout(() => onLogin(session), 900);
+
+    } catch (err) {
+      setStatus({ state: 'error', message: (err as Error).message ?? 'Unexpected error' });
+    }
+  }
+
+  const busy = ['connecting', 'fetching', 'saving'].includes(status.state);
+
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      minHeight: '100dvh',
+      background: '#080810',
+      color: '#e8e4d9',
+      alignItems: 'center',
+      justifyContent: 'center',
+      padding: '32px 20px',
+      fontFamily: 'sans-serif',
+    }}>
+
+      <div style={{
+        width: '100%',
+        maxWidth: '360px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+      }}>
+
+        {/* Hero logo — carries MIR + MAGIC IS REAL */}
+        <MirLogo size={180} />
+
+        {/* Prompt */}
+        <p style={{
+          marginTop: '20px',
+          fontSize: '14px',
+          color: '#8a8478',
+          textAlign: 'center',
+          lineHeight: 1.5,
+          fontFamily: 'Georgia, serif',
+          fontStyle: 'italic',
+        }}>
+          Enter your Lana private key to begin.
+        </p>
+
+        {/* Relay status */}
+        <RelayBadge ok={relayOk} />
+
+        {/* Form */}
+        <form
+          onSubmit={handleSubmit}
+          style={{ width: '100%', marginTop: '22px', display: 'flex', flexDirection: 'column' }}
+        >
+          <div style={{ position: 'relative' }}>
+            <input
+              type={showKey ? 'text' : 'password'}
+              value={privateKey}
+              onChange={e => setPrivateKey(e.target.value)}
+              placeholder="nsec1… or WIF or hex"
+              autoComplete="off"
+              spellCheck={false}
+              disabled={busy}
+              style={{
+                width: '100%',
+                boxSizing: 'border-box',
+                background: 'rgba(255,255,255,0.04)',
+                border: `1px solid ${status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'rgba(255,255,255,0.09)'}`,
+                borderRadius: '12px',
+                padding: '14px 46px 14px 16px',
+                color: '#e8e4d9',
+                fontFamily: 'monospace',
+                fontSize: '14px',
+                outline: 'none',
+                transition: 'border-color 0.2s',
+              }}
+              onFocus={e  => (e.currentTarget.style.borderColor = 'rgba(200,169,110,0.5)')}
+              onBlur={e   => (e.currentTarget.style.borderColor =
+                status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'rgba(255,255,255,0.09)')}
+            />
+            <button
+              type="button" onClick={() => setShowKey(v => !v)} tabIndex={-1}
+              style={{
+                position: 'absolute', right: '13px', top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: 'pointer',
+                color: '#5a5650', padding: '4px', display: 'flex',
+              }}
+            >
+              {showKey ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
+
+          {/* Step status */}
+          <div style={{
+            marginTop: '10px',
+            minHeight: '18px',
+            fontSize: '13px',
+            color: statusColor(status.state),
+            textAlign: 'center',
+          }}>
+            <StatusLine status={status} />
+          </div>
+
+          {/* Remember me */}
+          <label style={{
+            display: 'flex', alignItems: 'center', gap: '10px',
+            marginTop: '14px', cursor: 'pointer', userSelect: 'none',
+          }}>
+            <input
+              type="checkbox" checked={rememberMe}
+              onChange={e => setRememberMe(e.target.checked)}
+              style={{ accentColor: '#c8a96e', width: '15px', height: '15px' }}
+            />
+            <span style={{ fontSize: '13px', color: '#8a8478' }}>Remember me for 90 days</span>
+          </label>
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={!privateKey.trim() || busy}
+            style={{
+              marginTop: '20px',
+              width: '100%',
+              padding: '15px',
+              background: privateKey.trim() && !busy ? '#c8a96e' : 'rgba(255,255,255,0.06)',
+              color:      privateKey.trim() && !busy ? '#080810' : '#5a5650',
+              border: 'none',
+              borderRadius: '12px',
+              fontSize: '15px',
+              fontWeight: 600,
+              cursor: privateKey.trim() && !busy ? 'pointer' : 'default',
+              transition: 'background 0.2s, color 0.2s',
+              letterSpacing: '0.02em',
+            }}
+          >
+            {busy ? <BusyLabel state={status.state} /> : 'Begin'}
+          </button>
+        </form>
+
+        {/* Privacy note */}
+        <p style={{
+          marginTop: '16px',
+          fontSize: '11px',
+          color: '#3a3830',
+          textAlign: 'center',
+          lineHeight: 1.5,
+        }}>
+          The private key never leaves this device.
+        </p>
+
+        {/* Success preview */}
+        {status.state === 'success' && <SuccessPreview name={status.name} />}
+      </div>
+    </div>
+  );
+}
+
+// ── Sub-components ────────────────────────────────────────────
+
+function RelayBadge({ ok }: { ok: boolean | null }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
+      <div style={{
+        width: 7, height: 7, borderRadius: '50%',
+        background: ok === null ? '#5a5650' : ok ? '#4caf7d' : '#e55',
+        boxShadow: ok === true ? '0 0 6px rgba(76,175,125,0.6)' : 'none',
+        animation: ok === null ? 'mir-pulse 1.2s ease-in-out infinite' : 'none',
+      }} />
+      <span style={{ fontSize: '12px', color: ok === true ? '#6ec49a' : '#5a5650' }}>
+        {ok === null ? 'Checking relays…' : ok ? 'Relays connected' : 'Relay connection issues'}
+      </span>
+      <style>{`@keyframes mir-pulse { 0%,100%{opacity:.3} 50%{opacity:1} }`}</style>
+    </div>
+  );
+}
+
+function StatusLine({ status }: { status: LoginStatus }) {
+  if (status.state === 'idle')       return null;
+  if (status.state === 'connecting') return <>Connecting to relays…</>;
+  if (status.state === 'fetching')   return <>Fetching KIND 0 profile…</>;
+  if (status.state === 'saving')     return <>Saving profile…</>;
+  if (status.state === 'success')    return <>Welcome, {status.name}</>;
+  if (status.state === 'error')      return <span style={{ color: '#e07070' }}>{status.message}</span>;
+  return null;
+}
+
+function BusyLabel({ state }: { state: string }) {
+  if (state === 'connecting') return <>Connecting…</>;
+  if (state === 'fetching')   return <>Fetching profile…</>;
+  return <>Signing in…</>;
+}
+
+function statusColor(state: string) {
+  if (state === 'success') return '#6ec49a';
+  if (state === 'error')   return '#e07070';
+  return '#8a8478';
+}
+
+function SuccessPreview({ name }: { name: string }) {
+  return (
+    <div style={{
+      marginTop: '18px',
+      padding: '14px 20px',
+      background: 'rgba(200,169,110,0.07)',
+      border: '1px solid rgba(200,169,110,0.2)',
+      borderRadius: '12px',
+      textAlign: 'center',
+      width: '100%',
+      boxSizing: 'border-box',
+      animation: 'slideUp 0.35s ease',
+    }}>
+      <div style={{ fontSize: '20px', marginBottom: '4px', color: '#c8a96e' }}>✦</div>
+      <div style={{ fontSize: '15px', color: '#c8a96e', fontFamily: 'Georgia, serif' }}>{name}</div>
+      <div style={{ fontSize: '12px', color: '#5a5650', marginTop: '4px' }}>Opening MIR…</div>
+      <style>{`@keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }`}</style>
+    </div>
+  );
+}
+
+function EyeIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+      <circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+function EyeOffIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+      <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  );
+}

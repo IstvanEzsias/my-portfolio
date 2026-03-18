@@ -1,5 +1,5 @@
 // ============================================================
-// MIR — Database Schema
+// MIR — Database Schema (Nostr-based)
 // SQLite via better-sqlite3
 // ============================================================
 
@@ -13,7 +13,6 @@ let db;
 
 function getDb() {
   if (!db) {
-    // Ensure data directory exists
     const dir = path.dirname(DB_PATH);
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 
@@ -25,69 +24,48 @@ function getDb() {
   return db;
 }
 
-// ── Schema ───────────────────────────────────────────────────
+// ── Schema ────────────────────────────────────────────────────
 function initSchema() {
   db.exec(`
+    -- Users identified by Nostr public key
     CREATE TABLE IF NOT EXISTS users (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      name        TEXT,
-      created_at  TEXT DEFAULT (datetime('now'))
+      nostr_pubkey   TEXT PRIMARY KEY,
+      nostr_npub     TEXT,
+      display_name   TEXT,
+      avatar_url     TEXT,
+      about          TEXT,
+      first_seen     TEXT DEFAULT (datetime('now')),
+      last_seen      TEXT DEFAULT (datetime('now')),
+      review_count   INTEGER DEFAULT 0
     );
 
-    CREATE TABLE IF NOT EXISTS evening_reviews (
-      id            INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id       INTEGER REFERENCES users(id),
-      overall_mood  INTEGER CHECK(overall_mood BETWEEN 0 AND 10),
-      anger_level   INTEGER CHECK(anger_level BETWEEN 0 AND 10),
-      completed     INTEGER DEFAULT 0,
-      created_at    TEXT DEFAULT (datetime('now')),
-      updated_at    TEXT DEFAULT (datetime('now'))
+    -- Evening review sessions
+    CREATE TABLE IF NOT EXISTS sessions (
+      id               TEXT PRIMARY KEY,
+      nostr_pubkey     TEXT NOT NULL REFERENCES users(nostr_pubkey),
+      started_at       TEXT DEFAULT (datetime('now')),
+      completed_at     TEXT,
+      stage_reached    TEXT DEFAULT 'arrive',
+      full_transcript  TEXT,
+      growth_summary   TEXT,
+      closing_script   TEXT
     );
 
-    CREATE TABLE IF NOT EXISTS evening_review_items (
-      id                  INTEGER PRIMARY KEY AUTOINCREMENT,
-      evening_review_id   INTEGER NOT NULL REFERENCES evening_reviews(id) ON DELETE CASCADE,
-      description         TEXT NOT NULL,
-      type                TEXT DEFAULT 'situation',
-      intensity_before    INTEGER CHECK(intensity_before BETWEEN 0 AND 10),
-      intensity_after     INTEGER CHECK(intensity_after BETWEEN 0 AND 10),
-      created_at          TEXT DEFAULT (datetime('now'))
+    -- Growth summaries generated from batches of sessions
+    CREATE TABLE IF NOT EXISTS growth_summaries (
+      id                 INTEGER PRIMARY KEY AUTOINCREMENT,
+      nostr_pubkey       TEXT NOT NULL REFERENCES users(nostr_pubkey),
+      generated_at       TEXT DEFAULT (datetime('now')),
+      summary            TEXT,
+      recurring_themes   TEXT,
+      sessions_covered   INTEGER DEFAULT 0
     );
 
-    CREATE TABLE IF NOT EXISTS chat_messages (
-      id          INTEGER PRIMARY KEY AUTOINCREMENT,
-      user_id     INTEGER REFERENCES users(id),
-      review_id   INTEGER REFERENCES evening_reviews(id),
-      role        TEXT NOT NULL CHECK(role IN ('user', 'assistant')),
-      content     TEXT NOT NULL,
-      created_at  TEXT DEFAULT (datetime('now'))
-    );
+    -- Indexes
+    CREATE INDEX IF NOT EXISTS idx_sessions_pubkey   ON sessions(nostr_pubkey);
+    CREATE INDEX IF NOT EXISTS idx_growth_pubkey     ON growth_summaries(nostr_pubkey);
   `);
   console.log('✅ Database schema initialised');
 }
 
-// ── Dev seed ─────────────────────────────────────────────────
-function seedDevData() {
-  const userCount = db.prepare('SELECT COUNT(*) as n FROM users').get().n;
-  if (userCount > 0) return; // already seeded
-
-  const insertUser = db.prepare("INSERT INTO users (name) VALUES (?)");
-  const user = insertUser.run('Dev User');
-
-  const insertReview = db.prepare(`
-    INSERT INTO evening_reviews (user_id, overall_mood, anger_level, completed)
-    VALUES (?, ?, ?, ?)
-  `);
-  const review = insertReview.run(user.lastInsertRowid, 6, 4, 0);
-
-  const insertItem = db.prepare(`
-    INSERT INTO evening_review_items (evening_review_id, description, type, intensity_before)
-    VALUES (?, ?, ?, ?)
-  `);
-  insertItem.run(review.lastInsertRowid, 'Difficult meeting at work', 'situation', 7);
-  insertItem.run(review.lastInsertRowid, 'Argument with a friend', 'relationship', 8);
-
-  console.log('🌱 Dev seed data inserted');
-}
-
-module.exports = { getDb, seedDevData };
+module.exports = { getDb };
