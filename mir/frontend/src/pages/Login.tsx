@@ -1,10 +1,11 @@
 // ============================================================
 // MIR — Login Page
 // Nostr nsec / WIF / hex private key authentication
-// Connects to relays, fetches KIND 0 profile, persists session
+// Supports manual entry + QR code scan (html5-qrcode)
 // ============================================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { Html5Qrcode } from 'html5-qrcode';
 import { convertKeyToNostrIds } from '../lib/crypto';
 import { fetchKind0Profile, checkRelayConnectivity, DEFAULT_RELAYS } from '../lib/nostr';
 import { saveSession, type LanaSession } from '../lib/session';
@@ -30,20 +31,21 @@ export default function Login({ onLogin }: LoginProps) {
   const [rememberMe, setRememberMe] = useState(false);
   const [status, setStatus]         = useState<LoginStatus>({ state: 'idle' });
   const [relayOk, setRelayOk]       = useState<boolean | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
 
   useEffect(() => {
     checkRelayConnectivity().then(ok => setRelayOk(ok));
   }, []);
 
-  async function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    const key = privateKey.trim();
-    if (!key) return;
+  // ── Core login logic (shared by manual + QR) ──────────────
+  async function doLogin(key: string) {
+    const trimmed = key.trim();
+    if (!trimmed) return;
 
     setStatus({ state: 'connecting' });
 
     try {
-      const ids = await convertKeyToNostrIds(key);
+      const ids = await convertKeyToNostrIds(trimmed);
 
       setStatus({ state: 'fetching' });
       let profile = null;
@@ -92,6 +94,23 @@ export default function Login({ onLogin }: LoginProps) {
     }
   }
 
+  function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    doLogin(privateKey);
+  }
+
+  // ── QR scan callback ───────────────────────────────────────
+  function handleQRScan(scanned: string) {
+    const trimmed = scanned.trim();
+    if (!trimmed.startsWith('nsec1')) {
+      setStatus({ state: 'error', message: 'QR code must contain an nsec1 private key' });
+      return;
+    }
+    setShowScanner(false);
+    setPrivateKey(trimmed);
+    doLogin(trimmed);
+  }
+
   const busy = ['connecting', 'fetching', 'saving'].includes(status.state);
 
   return (
@@ -115,7 +134,7 @@ export default function Login({ onLogin }: LoginProps) {
         alignItems: 'center',
       }}>
 
-        {/* Hero logo — carries MIR + MAGIC IS REAL */}
+        {/* Hero logo */}
         <MirLogo size={180} />
 
         {/* Prompt */}
@@ -139,6 +158,7 @@ export default function Login({ onLogin }: LoginProps) {
           onSubmit={handleSubmit}
           style={{ width: '100%', marginTop: '22px', display: 'flex', flexDirection: 'column' }}
         >
+          {/* Input row — key field + eye toggle + camera button */}
           <div style={{ position: 'relative' }}>
             <input
               type={showKey ? 'text' : 'password'}
@@ -154,7 +174,7 @@ export default function Login({ onLogin }: LoginProps) {
                 background: 'rgba(255,255,255,0.04)',
                 border: `1px solid ${status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'rgba(255,255,255,0.09)'}`,
                 borderRadius: '12px',
-                padding: '14px 46px 14px 16px',
+                padding: '14px 80px 14px 16px',
                 color: '#e8e4d9',
                 fontFamily: 'monospace',
                 fontSize: '14px',
@@ -165,8 +185,10 @@ export default function Login({ onLogin }: LoginProps) {
               onBlur={e   => (e.currentTarget.style.borderColor =
                 status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'rgba(255,255,255,0.09)')}
             />
+            {/* Eye toggle */}
             <button
               type="button" onClick={() => setShowKey(v => !v)} tabIndex={-1}
+              title={showKey ? 'Hide key' : 'Show key'}
               style={{
                 position: 'absolute', right: '13px', top: '50%',
                 transform: 'translateY(-50%)',
@@ -176,7 +198,33 @@ export default function Login({ onLogin }: LoginProps) {
             >
               {showKey ? <EyeOffIcon /> : <EyeIcon />}
             </button>
+            {/* Camera / QR scan button */}
+            <button
+              type="button"
+              onClick={() => { setShowScanner(v => !v); setStatus({ state: 'idle' }); }}
+              tabIndex={-1}
+              title="Scan QR code"
+              disabled={busy}
+              style={{
+                position: 'absolute', right: '45px', top: '50%',
+                transform: 'translateY(-50%)',
+                background: 'none', border: 'none', cursor: busy ? 'default' : 'pointer',
+                color: showScanner ? '#c8a96e' : '#5a5650',
+                padding: '4px', display: 'flex',
+                transition: 'color 0.2s',
+              }}
+            >
+              <QRIcon />
+            </button>
           </div>
+
+          {/* Inline QR scanner — appears below input when active */}
+          {showScanner && (
+            <QRScanner
+              onScan={handleQRScan}
+              onClose={() => setShowScanner(false)}
+            />
+          )}
 
           {/* Step status */}
           <div style={{
@@ -238,6 +286,101 @@ export default function Login({ onLogin }: LoginProps) {
 
         {/* Success preview */}
         {status.state === 'success' && <SuccessPreview name={status.name} />}
+      </div>
+    </div>
+  );
+}
+
+// ── Inline QR Scanner ─────────────────────────────────────────
+const QR_SCANNER_ID = 'mir-qr-scanner';
+
+function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: () => void }) {
+  const scannerRef = useRef<Html5Qrcode | null>(null);
+  const [camError, setCamError] = useState<string | null>(null);
+  const [scanning, setScanning] = useState(false);
+
+  useEffect(() => {
+    let stopped = false;
+
+    const scanner = new Html5Qrcode(QR_SCANNER_ID);
+    scannerRef.current = scanner;
+
+    scanner.start(
+      { facingMode: 'environment' },
+      { fps: 10, qrbox: { width: 220, height: 220 } },
+      (decoded) => {
+        if (stopped) return;
+        stopped = true;
+        scanner.stop().catch(() => {}).finally(() => onScan(decoded));
+      },
+      () => { /* per-frame decode failure — normal, ignore */ }
+    )
+    .then(() => setScanning(true))
+    .catch(() => {
+      setCamError('Camera access denied. Please allow camera access or paste your key manually.');
+    });
+
+    return () => {
+      stopped = true;
+      scanner.stop().catch(() => {});
+    };
+  }, []);
+
+  function handleCancel() {
+    scannerRef.current?.stop().catch(() => {});
+    onClose();
+  }
+
+  return (
+    <div style={{
+      marginTop: '12px',
+      borderRadius: '14px',
+      overflow: 'hidden',
+      border: '1px solid rgba(200,169,110,0.25)',
+      background: 'rgba(0,0,0,0.4)',
+    }}>
+      {/* Camera viewport */}
+      <div id={QR_SCANNER_ID} style={{ width: '100%' }} />
+
+      {/* Error state */}
+      {camError && (
+        <div style={{
+          padding: '16px',
+          textAlign: 'center',
+          fontSize: '13px',
+          color: '#e07070',
+          lineHeight: 1.5,
+        }}>
+          {camError}
+        </div>
+      )}
+
+      {/* Instruction + cancel */}
+      <div style={{
+        padding: '10px 14px',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        borderTop: '1px solid rgba(255,255,255,0.06)',
+      }}>
+        <span style={{ fontSize: '12px', color: '#8a8478' }}>
+          {scanning ? 'Point camera at nsec1 QR code' : 'Starting camera…'}
+        </span>
+        <button
+          type="button"
+          onClick={handleCancel}
+          style={{
+            background: 'none',
+            border: '1px solid rgba(255,255,255,0.12)',
+            borderRadius: '8px',
+            color: '#8a8478',
+            fontSize: '12px',
+            padding: '5px 12px',
+            cursor: 'pointer',
+          }}
+        >
+          Cancel
+        </button>
       </div>
     </div>
   );
@@ -305,6 +448,8 @@ function SuccessPreview({ name }: { name: string }) {
   );
 }
 
+// ── Icons ──────────────────────────────────────────────────────
+
 function EyeIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -313,12 +458,34 @@ function EyeIcon() {
     </svg>
   );
 }
+
 function EyeOffIcon() {
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
       <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
       <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
       <line x1="1" y1="1" x2="23" y2="23"/>
+    </svg>
+  );
+}
+
+function QRIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      {/* Top-left QR square */}
+      <rect x="3" y="3" width="7" height="7" rx="1"/>
+      <rect x="5" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+      {/* Top-right QR square */}
+      <rect x="14" y="3" width="7" height="7" rx="1"/>
+      <rect x="16" y="5" width="3" height="3" fill="currentColor" stroke="none"/>
+      {/* Bottom-left QR square */}
+      <rect x="3" y="14" width="7" height="7" rx="1"/>
+      <rect x="5" y="16" width="3" height="3" fill="currentColor" stroke="none"/>
+      {/* Bottom-right dots */}
+      <rect x="14" y="14" width="3" height="3" fill="currentColor" stroke="none"/>
+      <rect x="18" y="14" width="3" height="3" fill="currentColor" stroke="none"/>
+      <rect x="14" y="18" width="3" height="3" fill="currentColor" stroke="none"/>
+      <rect x="18" y="18" width="3" height="3" fill="currentColor" stroke="none"/>
     </svg>
   );
 }

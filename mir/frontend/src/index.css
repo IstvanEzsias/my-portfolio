@@ -1,0 +1,35 @@
+/* MIR — Global base styles
+   Applied before JS executes so there's no flash of wrong background */
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background-color: #080810;
+  height: 100%;
+}
+
+body {
+  background-color: #080810;
+  color: #e8e4d9;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  background-color: #080810;
+  min-height: 100vh;
+}
+
+input, button, textarea {
+  font-family: inherit;
+}
+
+input:-webkit-autofill {
+  -webkit-box-shadow: 0 0 0 100px #0e0e1e inset;
+  -webkit-text-fill-color: #e8e4d9;
+}
