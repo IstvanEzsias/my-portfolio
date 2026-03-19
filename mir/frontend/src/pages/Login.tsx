@@ -330,12 +330,12 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
 
     return () => {
       stopped = true;
-      scanner.stop().catch(() => {});
+      try { scanner.stop().catch(() => {}); } catch { /* never started */ }
     };
   }, []);
 
   function handleCancel() {
-    scannerRef.current?.stop().catch(() => {});
+    try { scannerRef.current?.stop().catch(() => {}); } catch { /* never started */ }
     onClose();
   }
 
