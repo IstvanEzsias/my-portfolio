@@ -62,8 +62,21 @@ export async function fetchKind0Profile(
       ),
     ]);
 
-    if (!event) return null;
-    return JSON.parse(event.content) as Kind0Profile;
+    if (!event) {
+      console.log('[MIR] fetchKind0Profile: no KIND 0 event found for', hexPubKey);
+      return null;
+    }
+
+    console.log('[MIR] fetchKind0Profile: raw event.content =', event.content);
+
+    try {
+      const parsed = JSON.parse(event.content) as Kind0Profile;
+      console.log('[MIR] fetchKind0Profile: parsed =', parsed);
+      return parsed;
+    } catch (e) {
+      console.error('[MIR] fetchKind0Profile: failed to JSON.parse content:', e);
+      return null;
+    }
   } finally {
     pool.close(relays);
   }

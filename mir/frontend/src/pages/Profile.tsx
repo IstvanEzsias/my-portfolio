@@ -74,7 +74,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
       }}>
         {avatarUrl
           ? <img src={avatarUrl} alt={displayName} style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-          : <MirSymbol size={72} userInitial={initial} />
+          : <MirSymbol size={72} />
         }
         <h2 style={{
           marginTop: '16px',

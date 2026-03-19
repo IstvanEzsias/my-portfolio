@@ -33,6 +33,11 @@ export default function Login({ onLogin }: LoginProps) {
   const [relayOk, setRelayOk]       = useState<boolean | null>(null);
   const [showScanner, setShowScanner] = useState(false);
 
+  // Keep a ref to onLogin so doLogin always calls the latest version
+  // regardless of React closure/stale-prop issues (critical for QR flow)
+  const onLoginRef = useRef(onLogin);
+  useEffect(() => { onLoginRef.current = onLogin; }, [onLogin]);
+
   useEffect(() => {
     checkRelayConnectivity().then(ok => setRelayOk(ok));
   }, []);
@@ -87,7 +92,9 @@ export default function Login({ onLogin }: LoginProps) {
       saveSession(session);
       const displayName = profile?.display_name ?? profile?.name ?? '';
       setStatus({ state: 'success', name: displayName || 'Welcome' });
-      setTimeout(() => onLogin(session), 900);
+      // Use ref to guarantee we call the current onLogin, never a stale closure.
+      // The 900 ms delay lets the ✦ success flash play before navigating.
+      setTimeout(() => onLoginRef.current(session), 900);
 
     } catch (err) {
       setStatus({ state: 'error', message: (err as Error).message ?? 'Unexpected error' });
@@ -311,7 +318,11 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
       (decoded) => {
         if (stopped) return;
         stopped = true;
-        scanner.stop().catch(() => {}).finally(() => onScan(decoded));
+        // Notify parent immediately — don't block on scanner.stop() resolving.
+        // Waiting in .finally() caused the React state update to be swallowed
+        // in some browsers because the component unmounted mid-chain.
+        onScan(decoded);
+        scanner.stop().catch(() => {});
       },
       () => { /* per-frame decode failure — normal, ignore */ }
     )

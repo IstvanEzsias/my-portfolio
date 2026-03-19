@@ -48,6 +48,14 @@ export default function Review({ session, onComplete }: ReviewProps) {
   );
   const hasClosingScript = !!closingScriptMsg && !completed;
 
+  // ── Browser back button support ───────────────────────────
+  useEffect(() => {
+    window.history.pushState(null, '', window.location.href);
+    const handler = () => onComplete();
+    window.addEventListener('popstate', handler);
+    return () => window.removeEventListener('popstate', handler);
+  }, []);
+
   // Auto-scroll
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -191,10 +199,24 @@ export default function Review({ session, onComplete }: ReviewProps) {
         flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
-          <MirSymbol
-            size={30}
-            userInitial={(session.profile?.display_name ?? session.profile?.name ?? 'L')[0]?.toUpperCase()}
-          />
+          {/* ← Back arrow */}
+          <button
+            onClick={onComplete}
+            title="Back to Home"
+            style={{
+              background: 'none', border: 'none', cursor: 'pointer',
+              color: 'var(--text-secondary)', padding: '4px 6px',
+              fontSize: '20px', lineHeight: 1, display: 'flex',
+              alignItems: 'center', transition: 'color 0.2s',
+            }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--gold)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--text-secondary)')}
+          >
+            ←
+          </button>
+
+          <MirSymbol size={30} />
+
           <div>
             <div style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '0.06em', color: 'var(--gold)' }}>
               MIR
@@ -358,7 +380,7 @@ function MessageBubble({ message }: { message: Message }) {
     const { before, script } = parseClosingScript(message.content);
     return (
       <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-        <div style={{ flexShrink: 0, marginTop: '3px' }}><MirSymbol size={26} /></div>
+        <div style={{ flexShrink: 0, marginTop: '3px', lineHeight: 0 }}><MirSymbol size={26} /></div>
         <div style={{ maxWidth: '84%' }}>
           {before && (
             <div style={{
