@@ -33,11 +33,6 @@ export default function Login({ onLogin }: LoginProps) {
   const [relayOk, setRelayOk]       = useState<boolean | null>(null);
   const [showScanner, setShowScanner] = useState(false);
 
-  // Keep a ref to onLogin so doLogin always calls the latest version
-  // regardless of React closure/stale-prop issues (critical for QR flow)
-  const onLoginRef = useRef(onLogin);
-  useEffect(() => { onLoginRef.current = onLogin; }, [onLogin]);
-
   useEffect(() => {
     checkRelayConnectivity().then(ok => setRelayOk(ok));
   }, []);
@@ -90,15 +85,7 @@ export default function Login({ onLogin }: LoginProps) {
       };
 
       saveSession(session);
-      const displayName = profile?.display_name ?? profile?.name ?? '';
-      setStatus({ state: 'success', name: displayName || 'Welcome' });
-      // Call immediately — no setTimeout. In React 18 all state setters fired
-      // synchronously in the same frame are auto-batched into one re-render, so
-      // the App-level setSession + setPage here and Login's setStatus above are
-      // committed together. A setTimeout here was the root cause: it fired in a
-      // later async frame where React could not reliably process the update,
-      // leaving the app on a white screen until a manual refresh.
-      onLoginRef.current(session);
+      onLogin(session);
 
     } catch (err) {
       setStatus({ state: 'error', message: (err as Error).message ?? 'Unexpected error' });
@@ -322,11 +309,7 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
       (decoded) => {
         if (stopped) return;
         stopped = true;
-        // Notify parent immediately — don't block on scanner.stop() resolving.
-        // Waiting in .finally() caused the React state update to be swallowed
-        // in some browsers because the component unmounted mid-chain.
-        onScan(decoded);
-        scanner.stop().catch(() => {});
+        scanner.stop().catch(() => {}).finally(() => onScan(decoded));
       },
       () => { /* per-frame decode failure — normal, ignore */ }
     )

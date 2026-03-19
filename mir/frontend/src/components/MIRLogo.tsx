@@ -1,13 +1,14 @@
 // ============================================================
-// MIR Logo — PNG-based hero + compact circular symbol
-// MirLogo:   full hero with /mir-logo.png + gold text
-// MirSymbol: small circular avatar using the same PNG
+// MIR Logo — PNG-based hero + SVG compact symbol
+// MirLogo:  uses /mir-logo.png + gold text
+// MirSymbol: compact SVG triskelion for chat headers
 // Default export: auto-picks based on size (<=48 → compact)
 // ============================================================
 
 interface MirLogoProps {
-  size?:    number;
-  compact?: boolean;
+  size?:        number;
+  userInitial?: string;
+  compact?:     boolean;
 }
 
 // ── Full hero logo (PNG image + gold text) ────────────────────
@@ -42,30 +43,24 @@ export function MirLogo({ size = 200 }: { size?: number }) {
   );
 }
 
-// ── Compact circular symbol ───────────────────────────────────
-// Used in Review header, Profile avatar fallback — full PNG in a circle.
-// No SVG, no clipping artifacts, works in both light and dark mode.
-export function MirSymbol({ size = 48 }: { size?: number }) {
+// ── Compact symbol (PNG, circular crop) ───────────────────────
+// Used in chat headers, message bubbles
+export function MirSymbol({ size = 48 }: { size?: number; userInitial?: string }) {
   return (
     <img
       src="/mir-logo.png"
       width={size}
       height={size}
       alt="MIR"
-      style={{
-        borderRadius: '50%',
-        objectFit: 'contain',
-        background: 'transparent',
-        display: 'block',
-      }}
+      style={{ borderRadius: '50%', objectFit: 'contain', background: 'transparent' }}
     />
   );
 }
 
 // ── Default export: auto-selects based on size ────────────────
-export default function MIRLogo({ size = 64, compact = false }: MirLogoProps) {
+export default function MIRLogo({ size = 64, userInitial, compact = false }: MirLogoProps) {
   if (compact || size <= 48) {
-    return <MirSymbol size={size} />;
+    return <MirSymbol size={size} userInitial={userInitial} />;
   }
   return <MirLogo size={size} />;
 }
