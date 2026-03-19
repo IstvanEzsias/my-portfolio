@@ -40,7 +40,6 @@ export default function Profile({ session, onLogout }: ProfileProps) {
   const nostrProfile = session.profile;
   const displayName  = profile?.displayName ?? nostrProfile?.display_name ?? nostrProfile?.name ?? 'Lana User';
   const avatarUrl    = profile?.avatarUrl ?? nostrProfile?.picture ?? undefined;
-  const initial      = displayName[0]?.toUpperCase() ?? 'L';
   const npub         = session.npub;
   const shortNpub    = `${npub.slice(0, 12)}…${npub.slice(-6)}`;
 
