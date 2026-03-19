@@ -40,7 +40,6 @@ export default function Profile({ session, onLogout }: ProfileProps) {
   const nostrProfile = session.profile;
   const displayName  = profile?.displayName ?? nostrProfile?.display_name ?? nostrProfile?.name ?? 'Lana User';
   const avatarUrl    = profile?.avatarUrl ?? nostrProfile?.picture ?? undefined;
-  const initial      = displayName[0]?.toUpperCase() ?? 'L';
   const npub         = session.npub;
   const shortNpub    = `${npub.slice(0, 12)}…${npub.slice(-6)}`;
 
@@ -74,7 +73,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
       }}>
         {avatarUrl
           ? <img src={avatarUrl} alt={displayName} style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
-          : <MirSymbol size={72} userInitial={initial} />
+          : <MirSymbol size={72} />
         }
         <h2 style={{
           marginTop: '16px',

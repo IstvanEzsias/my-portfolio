@@ -33,6 +33,12 @@ export default function Login({ onLogin }: LoginProps) {
   const [relayOk, setRelayOk]       = useState<boolean | null>(null);
   const [showScanner, setShowScanner] = useState(false);
 
+  // Always call the CURRENT onLogin, never a stale closure from a previous render.
+  // doLogin is async with multiple awaits (up to 8s relay timeout), so the prop
+  // could be stale by the time we navigate. useRef solves this.
+  const onLoginRef = useRef(onLogin);
+  useEffect(() => { onLoginRef.current = onLogin; }, [onLogin]);
+
   useEffect(() => {
     checkRelayConnectivity().then(ok => setRelayOk(ok));
   }, []);
@@ -85,7 +91,7 @@ export default function Login({ onLogin }: LoginProps) {
       };
 
       saveSession(session);
-      onLogin(session);
+      onLoginRef.current(session);
 
     } catch (err) {
       setStatus({ state: 'error', message: (err as Error).message ?? 'Unexpected error' });
@@ -309,7 +315,11 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
       (decoded) => {
         if (stopped) return;
         stopped = true;
-        scanner.stop().catch(() => {}).finally(() => onScan(decoded));
+        // Notify parent immediately — don't wait for scanner.stop() to resolve.
+        // Waiting in .finally() caused React state updates to be swallowed
+        // in some browsers because the component unmounted mid-chain.
+        onScan(decoded);
+        scanner.stop().catch(() => {});
       },
       () => { /* per-frame decode failure — normal, ignore */ }
     )
