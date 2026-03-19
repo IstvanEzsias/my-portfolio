@@ -21,6 +21,17 @@ export default function App() {
     if (session) setPage('home');
   }, [!!session]);
 
+  // Fallback: react to storage writes from any tab, and as a safety net for
+  // cases where the direct setSession call in handleLogin is somehow missed.
+  useEffect(() => {
+    const handler = () => {
+      const s = loadSession();
+      if (s) setSession(s);
+    };
+    window.addEventListener('storage', handler);
+    return () => window.removeEventListener('storage', handler);
+  }, []);
+
   function handleLogin(s: LanaSession) {
     setSession(s);
     setPage('home');

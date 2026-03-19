@@ -92,9 +92,13 @@ export default function Login({ onLogin }: LoginProps) {
       saveSession(session);
       const displayName = profile?.display_name ?? profile?.name ?? '';
       setStatus({ state: 'success', name: displayName || 'Welcome' });
-      // Use ref to guarantee we call the current onLogin, never a stale closure.
-      // The 900 ms delay lets the ✦ success flash play before navigating.
-      setTimeout(() => onLoginRef.current(session), 900);
+      // Call immediately — no setTimeout. In React 18 all state setters fired
+      // synchronously in the same frame are auto-batched into one re-render, so
+      // the App-level setSession + setPage here and Login's setStatus above are
+      // committed together. A setTimeout here was the root cause: it fired in a
+      // later async frame where React could not reliably process the update,
+      // leaving the app on a white screen until a manual refresh.
+      onLoginRef.current(session);
 
     } catch (err) {
       setStatus({ state: 'error', message: (err as Error).message ?? 'Unexpected error' });
