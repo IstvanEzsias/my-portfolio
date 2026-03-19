@@ -28,8 +28,14 @@ export function loadSession(): LanaSession | null {
       clearSession();
       return null;
     }
+    // Reject sessions missing fields added in later versions — force re-login
+    if (!session.hexPubKey || !session.npub || !session.hexPrivKey || !session.nsec) {
+      clearSession();
+      return null;
+    }
     return session;
   } catch {
+    clearSession();
     return null;
   }
 }
