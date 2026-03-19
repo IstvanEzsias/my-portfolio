@@ -85,9 +85,7 @@ export default function Login({ onLogin }: LoginProps) {
       };
 
       saveSession(session);
-      const displayName = profile?.display_name ?? profile?.name ?? '';
-      setStatus({ state: 'success', name: displayName || 'Welcome' });
-      setTimeout(() => onLogin(session), 900);
+      onLogin(session);
 
     } catch (err) {
       setStatus({ state: 'error', message: (err as Error).message ?? 'Unexpected error' });

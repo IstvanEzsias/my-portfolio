@@ -63,7 +63,11 @@ export async function fetchKind0Profile(
     ]);
 
     if (!event) return null;
-    return JSON.parse(event.content) as Kind0Profile;
+    try {
+      return JSON.parse(event.content) as Kind0Profile;
+    } catch {
+      return null;
+    }
   } finally {
     pool.close(relays);
   }
