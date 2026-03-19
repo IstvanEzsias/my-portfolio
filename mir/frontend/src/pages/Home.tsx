@@ -44,8 +44,8 @@ export default function Home({ session, onBeginReview }: HomeProps) {
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100dvh',
-      background: '#080810',
-      color: '#e8e4d9',
+      background: 'var(--bg)',
+      color: 'var(--text)',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '32px 24px 88px',
@@ -59,7 +59,7 @@ export default function Home({ session, onBeginReview }: HomeProps) {
       <p style={{
         marginTop: '8px',
         fontSize: '13px',
-        color: '#5a5650',
+        color: 'var(--text-secondary)',
         fontFamily: 'Georgia, serif',
         fontStyle: 'italic',
         textAlign: 'center',
@@ -72,8 +72,8 @@ export default function Home({ session, onBeginReview }: HomeProps) {
       <div style={{
         marginTop: '28px',
         padding: '18px 22px',
-        background: 'rgba(255,255,255,0.025)',
-        border: '1px solid rgba(255,255,255,0.06)',
+        background: 'var(--card-bg)',
+        border: '1px solid var(--border)',
         borderRadius: '14px',
         maxWidth: '340px',
         width: '100%',
@@ -81,7 +81,7 @@ export default function Home({ session, onBeginReview }: HomeProps) {
       }}>
         <p style={{
           fontSize: '14px',
-          color: '#b8b4a9',
+          color: 'var(--text)',
           fontFamily: 'Georgia, serif',
           fontStyle: 'italic',
           lineHeight: 1.65,
@@ -92,7 +92,7 @@ export default function Home({ session, onBeginReview }: HomeProps) {
         <p style={{
           marginTop: '10px',
           fontSize: '11px',
-          color: '#5a5650',
+          color: 'var(--text-secondary)',
           letterSpacing: '0.06em',
         }}>
           — {quote.source}
@@ -105,23 +105,23 @@ export default function Home({ session, onBeginReview }: HomeProps) {
         style={{
           marginTop: '30px',
           padding: '16px 44px',
-          background: '#c8a96e',
-          color: '#080810',
+          background: 'var(--gold)',
+          color: 'var(--bg)',
           border: 'none',
           borderRadius: '14px',
           fontSize: '16px',
           fontWeight: 600,
           cursor: 'pointer',
           letterSpacing: '0.04em',
-          boxShadow: '0 0 28px rgba(200,169,110,0.2)',
+          boxShadow: '0 0 28px color-mix(in srgb, var(--gold) 20%, transparent)',
           transition: 'box-shadow 0.2s, transform 0.12s',
         }}
         onMouseEnter={e => {
-          e.currentTarget.style.boxShadow = '0 0 38px rgba(200,169,110,0.38)';
+          e.currentTarget.style.boxShadow = '0 0 38px color-mix(in srgb, var(--gold) 38%, transparent)';
           e.currentTarget.style.transform = 'translateY(-1px)';
         }}
         onMouseLeave={e => {
-          e.currentTarget.style.boxShadow = '0 0 28px rgba(200,169,110,0.2)';
+          e.currentTarget.style.boxShadow = '0 0 28px color-mix(in srgb, var(--gold) 20%, transparent)';
           e.currentTarget.style.transform = 'translateY(0)';
         }}
       >
@@ -137,20 +137,20 @@ export default function Home({ session, onBeginReview }: HomeProps) {
       }}>
         {streak >= 2 && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 600, color: '#c8a96e', fontFamily: 'Georgia, serif' }}>
+            <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--gold)', fontFamily: 'Georgia, serif' }}>
               {streak}
             </div>
-            <div style={{ fontSize: '11px', color: '#5a5650', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>
               {streak === 1 ? 'night' : 'nights'}
             </div>
           </div>
         )}
         {reviewCount > 0 && (
           <div style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '18px', fontWeight: 600, color: '#8a8478', fontFamily: 'Georgia, serif' }}>
+            <div style={{ fontSize: '18px', fontWeight: 600, color: 'var(--text-secondary)', fontFamily: 'Georgia, serif' }}>
               {reviewCount}
             </div>
-            <div style={{ fontSize: '11px', color: '#5a5650', letterSpacing: '0.04em' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>
               {reviewCount === 1 ? 'review' : 'reviews'}
             </div>
           </div>
@@ -159,7 +159,7 @@ export default function Home({ session, onBeginReview }: HomeProps) {
 
       {/* Display name only — no npub */}
       {displayName && (
-        <div style={{ marginTop: '20px', fontSize: '13px', color: '#6a6460', textAlign: 'center' }}>
+        <div style={{ marginTop: '20px', fontSize: '13px', color: 'var(--text-secondary)', textAlign: 'center' }}>
           {displayName}
         </div>
       )}

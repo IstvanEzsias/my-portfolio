@@ -56,7 +56,7 @@ export default function App() {
 
   // ── Tabbed screens ──────────────────────────────────────────
   return (
-    <div style={{ background: '#080810', minHeight: '100dvh' }}>
+    <div style={{ background: 'var(--bg)', minHeight: '100dvh' }}>
       {page === 'home' && (
         <Home
           session={session}

@@ -173,8 +173,8 @@ export default function Review({ session, onComplete }: ReviewProps) {
       display: 'flex',
       flexDirection: 'column',
       height: '100dvh',
-      background: '#080810',
-      color: '#e8e4d9',
+      background: 'var(--bg)',
+      color: 'var(--text)',
       fontFamily: "'Georgia', serif",
       maxWidth: '680px',
       margin: '0 auto',
@@ -183,11 +183,11 @@ export default function Review({ session, onComplete }: ReviewProps) {
       {/* Header */}
       <div style={{
         padding: '14px 18px',
-        borderBottom: '1px solid rgba(255,255,255,0.06)',
+        borderBottom: '1px solid var(--border)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        background: 'rgba(255,255,255,0.02)',
+        background: 'color-mix(in srgb, var(--bg) 85%, transparent)',
         flexShrink: 0,
       }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '11px' }}>
@@ -196,10 +196,10 @@ export default function Review({ session, onComplete }: ReviewProps) {
             userInitial={(session.profile?.display_name ?? session.profile?.name ?? 'L')[0]?.toUpperCase()}
           />
           <div>
-            <div style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '0.06em', color: '#c8a96e' }}>
+            <div style={{ fontSize: '15px', fontWeight: 600, letterSpacing: '0.06em', color: 'var(--gold)' }}>
               MIR
             </div>
-            <div style={{ fontSize: '11px', color: '#5a5650', fontFamily: 'sans-serif' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-secondary)', fontFamily: 'sans-serif' }}>
               evening review
             </div>
           </div>
@@ -212,10 +212,10 @@ export default function Review({ session, onComplete }: ReviewProps) {
             disabled={completing}
             style={{
               padding: '7px 14px',
-              background: 'rgba(200,169,110,0.12)',
-              border: '1px solid rgba(200,169,110,0.3)',
+              background: 'color-mix(in srgb, var(--gold) 12%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--gold) 30%, transparent)',
               borderRadius: '8px',
-              color: '#c8a96e',
+              color: 'var(--gold)',
               fontSize: '12px',
               fontFamily: 'sans-serif',
               cursor: 'pointer',
@@ -230,10 +230,10 @@ export default function Review({ session, onComplete }: ReviewProps) {
             onClick={onComplete}
             style={{
               padding: '7px 14px',
-              background: 'rgba(200,169,110,0.12)',
-              border: '1px solid rgba(200,169,110,0.3)',
+              background: 'color-mix(in srgb, var(--gold) 12%, transparent)',
+              border: '1px solid color-mix(in srgb, var(--gold) 30%, transparent)',
               borderRadius: '8px',
-              color: '#c8a96e',
+              color: 'var(--gold)',
               fontSize: '12px',
               fontFamily: 'sans-serif',
               cursor: 'pointer',
@@ -270,7 +270,7 @@ export default function Review({ session, onComplete }: ReviewProps) {
           <div style={{
             textAlign: 'center',
             padding: '16px',
-            color: '#5a5650',
+            color: 'var(--text-secondary)',
             fontSize: '13px',
             fontFamily: 'sans-serif',
             fontStyle: 'italic',
@@ -286,8 +286,8 @@ export default function Review({ session, onComplete }: ReviewProps) {
       {!completed && (
         <div style={{
           padding: '14px 18px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          background: 'rgba(255,255,255,0.02)',
+          borderTop: '1px solid var(--border)',
+          background: 'color-mix(in srgb, var(--bg) 85%, transparent)',
           flexShrink: 0,
           paddingBottom: 'calc(14px + env(safe-area-inset-bottom, 0px))',
         }}>
@@ -295,10 +295,10 @@ export default function Review({ session, onComplete }: ReviewProps) {
             display: 'flex',
             gap: '10px',
             alignItems: 'flex-end',
-            background: 'rgba(255,255,255,0.04)',
+            background: 'var(--input-bg)',
             borderRadius: '14px',
             padding: '10px 12px',
-            border: '1px solid rgba(255,255,255,0.07)',
+            border: '1px solid var(--border)',
           }}>
             <textarea
               ref={textareaRef}
@@ -314,7 +314,7 @@ export default function Review({ session, onComplete }: ReviewProps) {
                 border: 'none',
                 outline: 'none',
                 resize: 'none',
-                color: '#e8e4d9',
+                color: 'var(--text)',
                 fontFamily: "'Georgia', serif",
                 fontSize: '15px',
                 lineHeight: '1.55',
@@ -326,7 +326,7 @@ export default function Review({ session, onComplete }: ReviewProps) {
               onClick={sendMessage}
               disabled={!input.trim() || loading}
               style={{
-                background: input.trim() && !loading ? '#c8a96e' : 'rgba(255,255,255,0.08)',
+                background: input.trim() && !loading ? 'var(--gold)' : 'var(--border)',
                 border: 'none',
                 borderRadius: '9px',
                 width: '34px',
@@ -340,7 +340,7 @@ export default function Review({ session, onComplete }: ReviewProps) {
               }}
             >
               <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
-                <path d="M14 8L2 2l3 6-3 6 12-6z" fill={input.trim() && !loading ? '#080810' : '#555'} />
+                <path d="M14 8L2 2l3 6-3 6 12-6z" fill={input.trim() && !loading ? 'var(--bg)' : 'var(--text-secondary)'} />
               </svg>
             </button>
           </div>
@@ -362,13 +362,13 @@ function MessageBubble({ message }: { message: Message }) {
         <div style={{ maxWidth: '84%' }}>
           {before && (
             <div style={{
-              background: 'rgba(255,255,255,0.04)',
+              background: 'var(--card-bg)',
               borderRadius: '4px 16px 16px 16px',
               padding: '12px 16px',
-              border: '1px solid rgba(255,255,255,0.06)',
+              border: '1px solid var(--border)',
               fontSize: '15px',
               lineHeight: '1.65',
-              color: '#ddd8d0',
+              color: 'var(--text)',
               whiteSpace: 'pre-wrap',
               marginBottom: script ? '16px' : '0',
             }}>
@@ -385,13 +385,13 @@ function MessageBubble({ message }: { message: Message }) {
     <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
       <div style={{
         maxWidth: '78%',
-        background: 'rgba(30,26,50,0.9)',
+        background: 'var(--card-bg)',
         borderRadius: '16px 4px 16px 16px',
         padding: '11px 15px',
-        border: '1px solid rgba(200,169,110,0.12)',
+        border: '1px solid color-mix(in srgb, var(--gold) 12%, transparent)',
         fontSize: '15px',
         lineHeight: '1.55',
-        color: '#c4b898',
+        color: 'var(--text)',
         whiteSpace: 'pre-wrap',
         fontFamily: 'sans-serif',
       }}>
@@ -405,14 +405,14 @@ function MessageBubble({ message }: { message: Message }) {
 function ClosingScriptBlock({ text }: { text: string }) {
   return (
     <div style={{
-      borderTop: '1px solid rgba(200,169,110,0.3)',
+      borderTop: '1px solid color-mix(in srgb, var(--gold) 30%, transparent)',
       paddingTop: '18px',
       textAlign: 'center',
     }}>
       <p style={{
         fontSize: '17px',
         lineHeight: '1.75',
-        color: '#c8a96e',
+        color: 'var(--gold)',
         fontFamily: 'Georgia, serif',
         fontStyle: 'italic',
         margin: 0,
@@ -432,7 +432,7 @@ function TypingIndicator() {
       {[0, 1, 2].map(i => (
         <div key={i} style={{
           width: '5px', height: '5px', borderRadius: '50%',
-          background: '#c8a96e', opacity: 0.5,
+          background: 'var(--gold)', opacity: 0.5,
           animation: `mir-bounce 1.2s ease-in-out ${i * 0.2}s infinite`,
         }} />
       ))}
@@ -451,7 +451,7 @@ function PulsingDot() {
     <div style={{ textAlign: 'center', padding: '8px 0' }}>
       <div style={{
         width: '7px', height: '7px', borderRadius: '50%',
-        background: '#c8a96e', margin: '0 auto',
+        background: 'var(--gold)', margin: '0 auto',
         animation: 'mir-bounce 1.2s ease-in-out infinite',
       }} />
     </div>

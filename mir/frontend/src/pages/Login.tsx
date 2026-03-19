@@ -118,8 +118,8 @@ export default function Login({ onLogin }: LoginProps) {
       display: 'flex',
       flexDirection: 'column',
       minHeight: '100dvh',
-      background: '#080810',
-      color: '#e8e4d9',
+      background: 'var(--bg)',
+      color: 'var(--text)',
       alignItems: 'center',
       justifyContent: 'center',
       padding: '32px 20px',
@@ -141,7 +141,7 @@ export default function Login({ onLogin }: LoginProps) {
         <p style={{
           marginTop: '20px',
           fontSize: '14px',
-          color: '#8a8478',
+          color: 'var(--text-secondary)',
           textAlign: 'center',
           lineHeight: 1.5,
           fontFamily: 'Georgia, serif',
@@ -171,19 +171,19 @@ export default function Login({ onLogin }: LoginProps) {
               style={{
                 width: '100%',
                 boxSizing: 'border-box',
-                background: 'rgba(255,255,255,0.04)',
-                border: `1px solid ${status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'rgba(255,255,255,0.09)'}`,
+                background: 'var(--input-bg)',
+                border: `1px solid ${status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'var(--border)'}`,
                 borderRadius: '12px',
                 padding: '14px 80px 14px 16px',
-                color: '#e8e4d9',
+                color: 'var(--text)',
                 fontFamily: 'monospace',
                 fontSize: '14px',
                 outline: 'none',
                 transition: 'border-color 0.2s',
               }}
-              onFocus={e  => (e.currentTarget.style.borderColor = 'rgba(200,169,110,0.5)')}
+              onFocus={e  => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--gold) 50%, transparent)')}
               onBlur={e   => (e.currentTarget.style.borderColor =
-                status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'rgba(255,255,255,0.09)')}
+                status.state === 'error' ? 'rgba(220,80,80,0.5)' : 'var(--border)')}
             />
             {/* Eye toggle */}
             <button
@@ -193,7 +193,7 @@ export default function Login({ onLogin }: LoginProps) {
                 position: 'absolute', right: '13px', top: '50%',
                 transform: 'translateY(-50%)',
                 background: 'none', border: 'none', cursor: 'pointer',
-                color: '#5a5650', padding: '4px', display: 'flex',
+                color: 'var(--text-secondary)', padding: '4px', display: 'flex',
               }}
             >
               {showKey ? <EyeOffIcon /> : <EyeIcon />}
@@ -209,7 +209,7 @@ export default function Login({ onLogin }: LoginProps) {
                 position: 'absolute', right: '45px', top: '50%',
                 transform: 'translateY(-50%)',
                 background: 'none', border: 'none', cursor: busy ? 'default' : 'pointer',
-                color: showScanner ? '#c8a96e' : '#5a5650',
+                color: showScanner ? 'var(--gold)' : 'var(--text-secondary)',
                 padding: '4px', display: 'flex',
                 transition: 'color 0.2s',
               }}
@@ -245,9 +245,9 @@ export default function Login({ onLogin }: LoginProps) {
             <input
               type="checkbox" checked={rememberMe}
               onChange={e => setRememberMe(e.target.checked)}
-              style={{ accentColor: '#c8a96e', width: '15px', height: '15px' }}
+              style={{ accentColor: 'var(--gold)', width: '15px', height: '15px' }}
             />
-            <span style={{ fontSize: '13px', color: '#8a8478' }}>Remember me for 90 days</span>
+            <span style={{ fontSize: '13px', color: 'var(--text-secondary)' }}>Remember me for 90 days</span>
           </label>
 
           {/* Submit */}
@@ -258,8 +258,8 @@ export default function Login({ onLogin }: LoginProps) {
               marginTop: '20px',
               width: '100%',
               padding: '15px',
-              background: privateKey.trim() && !busy ? '#c8a96e' : 'rgba(255,255,255,0.06)',
-              color:      privateKey.trim() && !busy ? '#080810' : '#5a5650',
+              background: privateKey.trim() && !busy ? 'var(--gold)' : 'var(--border)',
+              color:      privateKey.trim() && !busy ? 'var(--bg)' : 'var(--text-secondary)',
               border: 'none',
               borderRadius: '12px',
               fontSize: '15px',
@@ -277,7 +277,7 @@ export default function Login({ onLogin }: LoginProps) {
         <p style={{
           marginTop: '16px',
           fontSize: '11px',
-          color: '#3a3830',
+          color: 'var(--text-secondary)',
           textAlign: 'center',
           lineHeight: 1.5,
         }}>
@@ -336,8 +336,8 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
       marginTop: '12px',
       borderRadius: '14px',
       overflow: 'hidden',
-      border: '1px solid rgba(200,169,110,0.25)',
-      background: 'rgba(0,0,0,0.4)',
+      border: '1px solid color-mix(in srgb, var(--gold) 25%, transparent)',
+      background: 'var(--card-bg)',
     }}>
       {/* Camera viewport */}
       <div id={QR_SCANNER_ID} style={{ width: '100%' }} />
@@ -361,9 +361,9 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
+        borderTop: '1px solid var(--border)',
       }}>
-        <span style={{ fontSize: '12px', color: '#8a8478' }}>
+        <span style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>
           {scanning ? 'Point camera at Lana WIF QR code' : 'Starting camera…'}
         </span>
         <button
@@ -371,9 +371,9 @@ function QRScanner({ onScan, onClose }: { onScan: (v: string) => void; onClose: 
           onClick={handleCancel}
           style={{
             background: 'none',
-            border: '1px solid rgba(255,255,255,0.12)',
+            border: '1px solid var(--border)',
             borderRadius: '8px',
-            color: '#8a8478',
+            color: 'var(--text-secondary)',
             fontSize: '12px',
             padding: '5px 12px',
             cursor: 'pointer',
@@ -393,11 +393,11 @@ function RelayBadge({ ok }: { ok: boolean | null }) {
     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '16px' }}>
       <div style={{
         width: 7, height: 7, borderRadius: '50%',
-        background: ok === null ? '#5a5650' : ok ? '#4caf7d' : '#e55',
+        background: ok === null ? 'var(--text-secondary)' : ok ? '#4caf7d' : '#e55',
         boxShadow: ok === true ? '0 0 6px rgba(76,175,125,0.6)' : 'none',
         animation: ok === null ? 'mir-pulse 1.2s ease-in-out infinite' : 'none',
       }} />
-      <span style={{ fontSize: '12px', color: ok === true ? '#6ec49a' : '#5a5650' }}>
+      <span style={{ fontSize: '12px', color: ok === true ? '#6ec49a' : 'var(--text-secondary)' }}>
         {ok === null ? 'Checking relays…' : ok ? 'Relays connected' : 'Relay connection issues'}
       </span>
       <style>{`@keyframes mir-pulse { 0%,100%{opacity:.3} 50%{opacity:1} }`}</style>
@@ -424,7 +424,7 @@ function BusyLabel({ state }: { state: string }) {
 function statusColor(state: string) {
   if (state === 'success') return '#6ec49a';
   if (state === 'error')   return '#e07070';
-  return '#8a8478';
+  return 'var(--text-secondary)';
 }
 
 function SuccessPreview({ name }: { name: string }) {
@@ -432,17 +432,17 @@ function SuccessPreview({ name }: { name: string }) {
     <div style={{
       marginTop: '18px',
       padding: '14px 20px',
-      background: 'rgba(200,169,110,0.07)',
-      border: '1px solid rgba(200,169,110,0.2)',
+      background: 'color-mix(in srgb, var(--gold) 7%, transparent)',
+      border: '1px solid color-mix(in srgb, var(--gold) 20%, transparent)',
       borderRadius: '12px',
       textAlign: 'center',
       width: '100%',
       boxSizing: 'border-box',
       animation: 'slideUp 0.35s ease',
     }}>
-      <div style={{ fontSize: '20px', marginBottom: '4px', color: '#c8a96e' }}>✦</div>
-      <div style={{ fontSize: '15px', color: '#c8a96e', fontFamily: 'Georgia, serif' }}>{name}</div>
-      <div style={{ fontSize: '12px', color: '#5a5650', marginTop: '4px' }}>Opening MIR…</div>
+      <div style={{ fontSize: '20px', marginBottom: '4px', color: 'var(--gold)' }}>✦</div>
+      <div style={{ fontSize: '15px', color: 'var(--gold)', fontFamily: 'Georgia, serif' }}>{name}</div>
+      <div style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '4px' }}>Opening MIR…</div>
       <style>{`@keyframes slideUp { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }`}</style>
     </div>
   );

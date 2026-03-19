@@ -1,6 +1,29 @@
 /* MIR — Global base styles
    Applied before JS executes so there's no flash of wrong background */
 
+/* ── Color tokens ────────────────────────────────────────────── */
+:root {
+  --bg:             #f5f0e8;
+  --text:           #1a1a2e;
+  --text-secondary: #4a4560;
+  --gold:           #9a7a3e;
+  --input-bg:       #ffffff;
+  --card-bg:        #ffffff;
+  --border:         #d4cfc4;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg:             #080810;
+    --text:           #e8e4d9;
+    --text-secondary: #8a8478;
+    --gold:           #c8a96e;
+    --input-bg:       #12121a;
+    --card-bg:        #12121a;
+    --border:         #2a2a3a;
+  }
+}
+
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -8,20 +31,20 @@
 }
 
 html {
-  background-color: #080810;
+  background-color: var(--bg);
   height: 100%;
 }
 
 body {
-  background-color: #080810;
-  color: #e8e4d9;
+  background-color: var(--bg);
+  color: var(--text);
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 #root {
-  background-color: #080810;
+  background-color: var(--bg);
   min-height: 100vh;
 }
 
@@ -30,6 +53,6 @@ input, button, textarea {
 }
 
 input:-webkit-autofill {
-  -webkit-box-shadow: 0 0 0 100px #0e0e1e inset;
-  -webkit-text-fill-color: #e8e4d9;
+  -webkit-box-shadow: 0 0 0 100px var(--input-bg) inset;
+  -webkit-text-fill-color: var(--text);
 }

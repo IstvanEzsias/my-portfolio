@@ -64,44 +64,44 @@ export default function Journal({ session }: JournalProps) {
   return (
     <div style={{
       minHeight: '100dvh',
-      background: '#080810',
-      color: '#e8e4d9',
+      background: 'var(--bg)',
+      color: 'var(--text)',
       fontFamily: 'sans-serif',
       paddingBottom: '80px',
     }}>
 
       <div style={{
         padding: '28px 24px 20px',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid var(--border)',
       }}>
         <h2 style={{
           margin: 0,
           fontSize: '18px',
           fontWeight: 600,
-          color: '#e8e4d9',
+          color: 'var(--text)',
           fontFamily: 'Georgia, serif',
           letterSpacing: '0.04em',
         }}>
           Journal
         </h2>
-        <p style={{ margin: '4px 0 0', fontSize: '12px', color: '#5a5650' }}>
+        <p style={{ margin: '4px 0 0', fontSize: '12px', color: 'var(--text-secondary)' }}>
           {entries.length > 0 ? `${entries.length} evening${entries.length === 1 ? '' : 's'}` : ''}
         </p>
       </div>
 
       <div style={{ padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
         {loading && (
-          <p style={{ color: '#5a5650', fontSize: '13px', textAlign: 'center', marginTop: '24px' }}>
+          <p style={{ color: 'var(--text-secondary)', fontSize: '13px', textAlign: 'center', marginTop: '24px' }}>
             Loading…
           </p>
         )}
 
         {!loading && entries.length === 0 && (
           <div style={{ textAlign: 'center', padding: '48px 0' }}>
-            <p style={{ color: '#5a5650', fontSize: '14px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '14px', fontFamily: 'Georgia, serif', fontStyle: 'italic' }}>
               No reviews yet.
             </p>
-            <p style={{ color: '#3a3830', fontSize: '12px', marginTop: '8px' }}>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '12px', marginTop: '8px' }}>
               Your first review will appear here.
             </p>
           </div>
@@ -114,9 +114,9 @@ export default function Journal({ session }: JournalProps) {
               style={{
                 width: '100%',
                 background: expanded?.id === entry.id
-                  ? 'rgba(200,169,110,0.07)'
-                  : 'rgba(255,255,255,0.025)',
-                border: `1px solid ${expanded?.id === entry.id ? 'rgba(200,169,110,0.2)' : 'rgba(255,255,255,0.06)'}`,
+                  ? 'color-mix(in srgb, var(--gold) 7%, transparent)'
+                  : 'var(--card-bg)',
+                border: `1px solid ${expanded?.id === entry.id ? 'color-mix(in srgb, var(--gold) 20%, transparent)' : 'var(--border)'}`,
                 borderRadius: '14px',
                 padding: '16px 18px',
                 cursor: 'pointer',
@@ -126,14 +126,14 @@ export default function Journal({ session }: JournalProps) {
             >
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                 <div>
-                  <div style={{ fontSize: '14px', color: '#c8a96e', fontFamily: 'Georgia, serif', fontWeight: 600 }}>
+                  <div style={{ fontSize: '14px', color: 'var(--gold)', fontFamily: 'Georgia, serif', fontWeight: 600 }}>
                     {formatDate(entry.startedAt)}
                   </div>
                   {entry.closingScript && (
                     <div style={{
                       marginTop: '6px',
                       fontSize: '13px',
-                      color: '#8a8478',
+                      color: 'var(--text-secondary)',
                       fontFamily: 'Georgia, serif',
                       fontStyle: 'italic',
                       lineHeight: 1.5,
@@ -149,7 +149,7 @@ export default function Journal({ session }: JournalProps) {
                 </div>
                 <div style={{
                   fontSize: '18px',
-                  color: '#5a5650',
+                  color: 'var(--text-secondary)',
                   paddingLeft: '8px',
                   transition: 'transform 0.2s',
                   transform: expanded?.id === entry.id ? 'rotate(180deg)' : 'none',
@@ -163,8 +163,8 @@ export default function Journal({ session }: JournalProps) {
             {expanded?.id === entry.id && (
               <div style={{
                 marginTop: '2px',
-                background: 'rgba(255,255,255,0.015)',
-                border: '1px solid rgba(200,169,110,0.1)',
+                background: 'var(--card-bg)',
+                border: '1px solid color-mix(in srgb, var(--gold) 10%, transparent)',
                 borderRadius: '0 0 14px 14px',
                 padding: '20px 18px',
                 borderTop: 'none',
@@ -172,14 +172,14 @@ export default function Journal({ session }: JournalProps) {
                 {/* Full closing script */}
                 {expanded.closingScript && (
                   <div style={{
-                    borderBottom: '1px solid rgba(255,255,255,0.06)',
+                    borderBottom: '1px solid var(--border)',
                     paddingBottom: '16px',
                     marginBottom: '16px',
                     textAlign: 'center',
                   }}>
                     <p style={{
                       fontSize: '15px',
-                      color: '#c8a96e',
+                      color: 'var(--gold)',
                       fontFamily: 'Georgia, serif',
                       fontStyle: 'italic',
                       lineHeight: 1.75,
@@ -197,12 +197,12 @@ export default function Journal({ session }: JournalProps) {
                       <div key={i} style={{
                         fontSize: '13px',
                         lineHeight: 1.6,
-                        color: msg.role === 'user' ? '#a09890' : '#7a7670',
+                        color: msg.role === 'user' ? 'var(--text)' : 'var(--text-secondary)',
                         fontFamily: msg.role === 'assistant' ? 'Georgia, serif' : 'sans-serif',
                         fontStyle: msg.role === 'assistant' ? 'italic' : 'normal',
                         paddingLeft: msg.role === 'user' ? '12px' : '0',
                         borderLeft: msg.role === 'user'
-                          ? '2px solid rgba(200,169,110,0.2)'
+                          ? '2px solid color-mix(in srgb, var(--gold) 20%, transparent)'
                           : 'none',
                       }}>
                         {msg.content}
@@ -210,7 +210,7 @@ export default function Journal({ session }: JournalProps) {
                     ))}
                   </div>
                 ) : (
-                  <p style={{ fontSize: '12px', color: '#3a3830', fontStyle: 'italic', textAlign: 'center' }}>
+                  <p style={{ fontSize: '12px', color: 'var(--text-secondary)', fontStyle: 'italic', textAlign: 'center' }}>
                     Transcript not available.
                   </p>
                 )}

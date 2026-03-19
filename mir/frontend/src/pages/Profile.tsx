@@ -58,8 +58,8 @@ export default function Profile({ session, onLogout }: ProfileProps) {
   return (
     <div style={{
       minHeight: '100dvh',
-      background: '#080810',
-      color: '#e8e4d9',
+      background: 'var(--bg)',
+      color: 'var(--text)',
       fontFamily: 'sans-serif',
       paddingBottom: '80px',
     }}>
@@ -70,7 +70,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
         flexDirection: 'column',
         alignItems: 'center',
         padding: '40px 24px 28px',
-        borderBottom: '1px solid rgba(255,255,255,0.05)',
+        borderBottom: '1px solid var(--border)',
       }}>
         {avatarUrl
           ? <img src={avatarUrl} alt={displayName} style={{ width: 72, height: 72, borderRadius: '50%', objectFit: 'cover' }} onError={e => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }} />
@@ -80,7 +80,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
           marginTop: '16px',
           fontSize: '20px',
           fontWeight: 600,
-          color: '#e8e4d9',
+          color: 'var(--text)',
           fontFamily: 'Georgia, serif',
           textAlign: 'center',
         }}>
@@ -90,7 +90,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
           <p style={{
             marginTop: '6px',
             fontSize: '13px',
-            color: '#8a8478',
+            color: 'var(--text-secondary)',
             textAlign: 'center',
             maxWidth: '280px',
             lineHeight: 1.5,
@@ -103,7 +103,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
         <p style={{
           marginTop: '8px',
           fontSize: '11px',
-          color: '#3a3830',
+          color: 'var(--text-secondary)',
           fontFamily: 'monospace',
         }}>
           {shortNpub}
@@ -131,20 +131,20 @@ export default function Profile({ session, onLogout }: ProfileProps) {
             fontSize: '11px',
             letterSpacing: '0.12em',
             textTransform: 'uppercase',
-            color: '#5a5650',
+            color: 'var(--text-secondary)',
             marginBottom: '12px',
           }}>
             Recent Growth
           </h3>
           <div style={{
-            background: 'rgba(255,255,255,0.025)',
-            border: '1px solid rgba(255,255,255,0.06)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border)',
             borderRadius: '14px',
             padding: '18px',
           }}>
             <p style={{
               fontSize: '14px',
-              color: '#b8b4a9',
+              color: 'var(--text)',
               fontFamily: 'Georgia, serif',
               lineHeight: 1.7,
               margin: 0,
@@ -156,7 +156,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
               <p style={{
                 marginTop: '10px',
                 fontSize: '12px',
-                color: '#5a5650',
+                color: 'var(--text-secondary)',
               }}>
                 Themes: {growthSummary.recurringThemes}
               </p>
@@ -164,7 +164,7 @@ export default function Profile({ session, onLogout }: ProfileProps) {
             <p style={{
               marginTop: '8px',
               fontSize: '11px',
-              color: '#3a3830',
+              color: 'var(--text-secondary)',
             }}>
               From {growthSummary.sessionsCovered} sessions · {formatDate(growthSummary.generatedAt)}
             </p>
@@ -179,10 +179,10 @@ export default function Profile({ session, onLogout }: ProfileProps) {
           style={{
             width: '100%',
             padding: '14px',
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'var(--card-bg)',
+            border: '1px solid var(--border)',
             borderRadius: '12px',
-            color: '#8a8478',
+            color: 'var(--text-secondary)',
             fontSize: '14px',
             cursor: 'pointer',
           }}
@@ -198,16 +198,16 @@ function StatCard({ value, label }: { value: string; label: string }) {
   return (
     <div style={{
       flex: 1,
-      background: 'rgba(255,255,255,0.025)',
-      border: '1px solid rgba(255,255,255,0.06)',
+      background: 'var(--card-bg)',
+      border: '1px solid var(--border)',
       borderRadius: '12px',
       padding: '16px',
       textAlign: 'center',
     }}>
-      <div style={{ fontSize: '22px', fontWeight: 600, color: '#c8a96e', fontFamily: 'Georgia, serif' }}>
+      <div style={{ fontSize: '22px', fontWeight: 600, color: 'var(--gold)', fontFamily: 'Georgia, serif' }}>
         {value}
       </div>
-      <div style={{ fontSize: '11px', color: '#5a5650', marginTop: '4px', letterSpacing: '0.04em' }}>
+      <div style={{ fontSize: '11px', color: 'var(--text-secondary)', marginTop: '4px', letterSpacing: '0.04em' }}>
         {label}
       </div>
     </div>
